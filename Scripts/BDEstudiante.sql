@@ -314,7 +314,7 @@ VALUES
 ('Faber-Castell'),
 ('Kores');
 
-INSERT INTO Productos (IDMarca, IDCategoria, NombreProducto)
+INSERT INTO Productos (Marca_ID, Categoria_ID, NombreProducto)
 VALUES 
 (1, 1, 'Cuaderno Profesional Norma 100 hojas'),
 (2, 2, 'Bolígrafo Bic Azul'),
