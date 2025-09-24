@@ -290,7 +290,7 @@ CREATE TABLE ReclamosProveedor (
     FOREIGN KEY (Producto_ID) REFERENCES Productos(Producto_ID)
 );
 
-INSERT INTO Proveedores (NombreEmpresa, Direccion, Telefono, Email)
+INSERT INTO Provedores (NombreEmpresa, Direccion, Telefono, Email)
 VALUES 
 ('Papelería Central', 'Av. Insurgentes 123, CDMX', '555-123-4567', 'contacto@papeleriacentral.com'),
 ('Distribuidora Escolar S.A.', 'Calle Educación 45, Guadalajara', '333-789-6543', 'ventas@distribuidoraescolar.com'),
@@ -298,7 +298,7 @@ VALUES
 ('Proveedora del Norte', 'Calle Reforma 88, Chihuahua', '614-333-9988', 'norte@proveedora.com'),
 ('Suministros Académicos', 'Av. Universidad 432, Puebla', '222-444-7788', 'contacto@suministrosac.com');
 
-INSERT INTO Categorias (NombreCategoria, Descripcion)
+INSERT INTO Categoria (NombreCategoria, Descripcion)
 VALUES 
 ('Cuadernos', 'Cuadernos escolares de diferentes tamaños y diseños'),
 ('Escritura', 'Artículos de escritura como lápices, plumas, marcadores'),
@@ -306,7 +306,7 @@ VALUES
 ('Arte y Dibujo', 'Materiales de arte como colores, crayones, pinceles'),
 ('Oficina', 'Artículos para oficina como engrapadoras, perforadoras, clips');
 
-INSERT INTO Marcas (NombreMarca)
+INSERT INTO Marca (NombreMarca)
 VALUES 
 ('Norma'),
 ('Bic'),
@@ -344,9 +344,9 @@ VALUES ('Luis', 'Sanchez');
 
 
 
-SELECT * FROM Proveedores
-SELECT * FROM Marcas
-SELECT * FROM Categorias
+SELECT * FROM Provedores
+SELECT * FROM Marca
+SELECT * FROM Categoria
 SELECT * FROM Productos
 SELECT * FROM MovimientoInventario
 
