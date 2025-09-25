@@ -1,5 +1,5 @@
-//using WebApi.Implementacion;
-//using WebApi.Interfaz;
+using WebApi.Implementacion;
+using WebApi.Interfaz;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -20,9 +20,9 @@ builder.Services.AddCors(options =>
         });
 });
 
-//builder.Services.AddScoped<IUsuarioRolService, UsuarioRolService>();
-//builder.Services.AddScoped<IUsuarioService, UsuarioService>();
-//builder.Services.AddScoped<IRolService, RolService>();
+builder.Services.AddScoped<IUsuarioRolService, UsuarioRolService>();
+builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+builder.Services.AddScoped<IRolService, RolService>();
 //builder.Services.AddScoped<IProveedorService, ProveedorService>();
 //builder.Services.AddScoped<ICompraService, CompraService>();
 //builder.Services.AddScoped<IDetalleCompraService, DetalleCompraService>()
