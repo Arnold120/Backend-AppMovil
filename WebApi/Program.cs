@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
+using WebApi.Interfaz;
+using WebApi.Implementacion;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,9 +29,9 @@ builder.Services.AddCors(options =>
 //builder.Services.AddScoped<ICompraService, CompraService>();
 //builder.Services.AddScoped<IDetalleCompraService, DetalleCompraService>()
 //builder.Services.AddScoped<IBitacoraService, BitacoraService>();
-//builder.Services.AddScoped<IMarcaService, MarcaService>();
-//builder.Services.AddScoped<ICategoriaService, CategoriaService>();
-//builder.Services.AddScoped<IClienteService, ClienteService>();
+builder.Services.AddScoped<IMarcaService, MarcaService>();
+builder.Services.AddScoped<ICategoriaService, CategoriaService>();
+builder.Services.AddScoped<IClienteService, ClienteService>();
 //builder.Services.AddScoped<IFacturaService, FacturaService>();
 //builder.Services.AddScoped<IVentaService, VentaService>();
 //builder.Services.AddScoped<IDetalleVentaService, DetalleVentaService>();
