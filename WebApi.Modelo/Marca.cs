@@ -2,7 +2,7 @@
 {
     public class Marcas
     {
-        public int IDMarca { get; set; }
+        public int Marca_ID { get; set; }
         public string? NombreMarca { get; set; }
         public bool Activo { get; set; }
         public DateTime FechaRegistro { get; set; }
