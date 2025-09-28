@@ -1,19 +1,16 @@
-USE master;
+DROP DATABASE IF EXISTS backendLibreriaMovil;
 GO
 
-DROP DATABASE IF EXISTS SistemaDeLibreria;
+CREATE DATABASE backendLibreriaMovil;
 GO
 
-CREATE DATABASE SistemaDeLibreria;
-GO
-
-USE SistemaDeLibreria;
+USE backendLibreriaMovil;
 GO
 
 CREATE TABLE Usuario (
 	Usuario_ID INT PRIMARY KEY IDENTITY,
 	NombreUsuario VARCHAR(100) UNIQUE,
-	Contrase√±a VARCHAR(100),
+	ContraseÒa VARCHAR(100),
 	Salt VARBINARY(64),
 	FechaRegistro DATETIME
 );
@@ -54,7 +51,7 @@ CREATE TABLE Provedores(
     Telefono VARCHAR(50),
     Email VARCHAR(100),
     AceptaDevoluciones BIT DEFAULT 0, -- si=intento de reclamo, no=perdidas 
-    TiempoDevolucion INT DEFAULT 15, -- D√≠as l√≠mite para hacer devoluciones segun el proveedor
+    TiempoDevolucion INT DEFAULT 15, -- DÌas lÌmite para hacer devoluciones segun el proveedor
     PorcentajeCobertura DECIMAL(5,2) DEFAULT 0  -- % del costo que cubre, ej: 100 = cubre todo
 );
 
@@ -88,7 +85,7 @@ CREATE TABLE Productos (
 	FOREIGN KEY (Categoria_ID) REFERENCES Categoria(Categoria_ID)
 );
 
--- Tabla de Precios (estructura m√°s clara y completa)(OPCION MAS RENTABLE)
+-- Tabla de Precios (estructura m·s clara y completa)(OPCION MAS RENTABLE)
 CREATE TABLE PrecioProducto (
     Precio_ID INT PRIMARY KEY IDENTITY(1,1),
     Producto_ID INT,
@@ -98,7 +95,7 @@ CREATE TABLE PrecioProducto (
     PorcentajeMargen DECIMAL(5,2),  --Porcentaje de ganancia respecto al costo(margenganacia/costocompra * 100)
     Activo BIT,  
     FechaRegistro DATETIME,
-    UsuarioModificacion VARCHAR(50),  -- Auditor√≠a: qui√©n modific√≥ el precio
+    UsuarioModificacion VARCHAR(50),  -- AuditorÌa: quiÈn modificÛ el precio
 	FOREIGN KEY (Producto_ID) REFERENCES Productos(Producto_ID)
 );
 
@@ -190,9 +187,9 @@ CREATE TABLE Factura (
     IVA DECIMAL(12,2) DEFAULT 0,  --impuestos (15% en nicaragua)
     Descuento DECIMAL(12,2) DEFAULT 0, -- aplicado de manera general
     TotalFactura DECIMAL(12,2) NOT NULL, -- el total a pagar o el subtotal + iva - descuento
-    Moneda VARCHAR(10) DEFAULT 'C√≥rdoba', -- 
+    Moneda VARCHAR(10) DEFAULT 'CÛrdoba', -- 
     MetodoPago VARCHAR(50) DEFAULT 'Efectivo',
-    TipoPago VARCHAR(50) DEFAULT 'Contado', -- (Contado/Cr√©dito) o sea pago inmediato o si la libreria fia a plazos
+    TipoPago VARCHAR(50) DEFAULT 'Contado', -- (Contado/CrÈdito) o sea pago inmediato o si la libreria fia a plazos
     Estado VARCHAR(20) DEFAULT 'Emitida' CHECK (Estado IN ('Emitida', 'Anulada', 'Pagada', 'Pendiente')),
     FOREIGN KEY (Venta_ID) REFERENCES Ventas(Venta_ID), -- una factura perteneces a una venta
     FOREIGN KEY (Cliente_ID) REFERENCES Clientes(Cliente_ID) -- hace referencia a la columna id cliente en la tabla cliente
@@ -266,7 +263,7 @@ CREATE TABLE PerdidasInventario (
     Perdida_ID INT PRIMARY KEY IDENTITY,
     Producto_ID INT NOT NULL, -- id del produto que se perdio
     Cantidad INT NOT NULL, -- la cantidad de unidades que se perdio
-    Motivo VARCHAR(100) CHECK (Motivo IN ('Defectuoso', 'Vencimiento', 'Da√±ado')), --aunque sea defectuoso si paso el tiempo limite del reembolso del proveedor es una perdida
+    Motivo VARCHAR(100) CHECK (Motivo IN ('Defectuoso', 'Vencimiento', 'DaÒado')), --aunque sea defectuoso si paso el tiempo limite del reembolso del proveedor es una perdida
     FechaRegistro DATETIME DEFAULT GETDATE(),  -- fecha que se registra la perdida
     Usuario_ID INT,
     FOREIGN KEY (Producto_ID) REFERENCES Productos(Producto_ID),
@@ -290,23 +287,23 @@ CREATE TABLE ReclamosProveedor (
     FOREIGN KEY (Producto_ID) REFERENCES Productos(Producto_ID)
 );
 
-INSERT INTO Proveedores (NombreEmpresa, Direccion, Telefono, Email)
+INSERT INTO Provedores (NombreEmpresa, Direccion, Telefono, Email)
 VALUES 
-('Papeler√≠a Central', 'Av. Insurgentes 123, CDMX', '555-123-4567', 'contacto@papeleriacentral.com'),
-('Distribuidora Escolar S.A.', 'Calle Educaci√≥n 45, Guadalajara', '333-789-6543', 'ventas@distribuidoraescolar.com'),
-('√ötiles y M√°s', 'Boulevard del Estudiante 789, Monterrey', '818-456-1122', 'info@utilesymas.mx'),
+('PapelerÌa Central', 'Av. Insurgentes 123, CDMX', '555-123-4567', 'contacto@papeleriacentral.com'),
+('Distribuidora Escolar S.A.', 'Calle EducaciÛn 45, Guadalajara', '333-789-6543', 'ventas@distribuidoraescolar.com'),
+('⁄tiles y M·s', 'Boulevard del Estudiante 789, Monterrey', '818-456-1122', 'info@utilesymas.mx'),
 ('Proveedora del Norte', 'Calle Reforma 88, Chihuahua', '614-333-9988', 'norte@proveedora.com'),
-('Suministros Acad√©micos', 'Av. Universidad 432, Puebla', '222-444-7788', 'contacto@suministrosac.com');
+('Suministros AcadÈmicos', 'Av. Universidad 432, Puebla', '222-444-7788', 'contacto@suministrosac.com');
 
-INSERT INTO Categorias (NombreCategoria, Descripcion)
+INSERT INTO Categoria (NombreCategoria, Descripcion)
 VALUES 
-('Cuadernos', 'Cuadernos escolares de diferentes tama√±os y dise√±os'),
-('Escritura', 'Art√≠culos de escritura como l√°pices, plumas, marcadores'),
-('Papeler√≠a General', 'Hojas, carpetas, sobres y otros insumos'),
+('Cuadernos', 'Cuadernos escolares de diferentes tamaÒos y diseÒos'),
+('Escritura', 'ArtÌculos de escritura como l·pices, plumas, marcadores'),
+('PapelerÌa General', 'Hojas, carpetas, sobres y otros insumos'),
 ('Arte y Dibujo', 'Materiales de arte como colores, crayones, pinceles'),
-('Oficina', 'Art√≠culos para oficina como engrapadoras, perforadoras, clips');
+('Oficina', 'ArtÌculos para oficina como engrapadoras, perforadoras, clips');
 
-INSERT INTO Marcas (NombreMarca)
+INSERT INTO Marca (NombreMarca)
 VALUES 
 ('Norma'),
 ('Bic'),
@@ -314,39 +311,30 @@ VALUES
 ('Faber-Castell'),
 ('Kores');
 
-INSERT INTO Productos (IDMarca, IDCategoria, NombreProducto)
+INSERT INTO Productos (Marca_ID, Categoria_ID, NombreProducto)
 VALUES 
 (1, 1, 'Cuaderno Profesional Norma 100 hojas'),
-(2, 2, 'Bol√≠grafo Bic Azul'),
+(2, 2, 'BolÌgrafo Bic Azul'),
 (3, 2, 'Marcador Permanente Pelikan Negro'),
 (4, 4, 'Colores de Madera Faber-Castell 12 piezas'),
-(5, 3, 'Corrector L√≠quido Kores'),
-(2, 2, 'L√°piz delgado Bic HB2'),
-(3, 3, 'Carpeta tama√±o carta con broche Pelikan'),
+(5, 3, 'Corrector LÌquido Kores'),
+(2, 2, 'L·piz delgado Bic HB2'),
+(3, 3, 'Carpeta tamaÒo carta con broche Pelikan'),
 (1, 1, 'Cuaderno Norma Rayado 200 hojas'),
 (4, 4, 'Crayones Faber-Castell 24 colores'),
-(5, 5, 'Grapadora de oficina Kores met√°lica');
+(5, 5, 'Grapadora de oficina Kores met·lica');
 
 INSERT INTO Clientes (Nombre, Apellido)
-VALUES ('Juan', 'P√©rez');
+VALUES ('Juan', 'PÈrez');
 
 INSERT INTO Clientes (Nombre, Apellido)
-VALUES ('Mar√≠a', 'G√≥mez');
+VALUES ('MarÌa', 'GÛmez');
 
 INSERT INTO Clientes (Nombre, Apellido)
-VALUES ('Carlos', 'L√≥pez');
+VALUES ('Carlos', 'LÛpez');
 
 INSERT INTO Clientes (Nombre, Apellido)
-VALUES ('Ana', 'Mart√≠nez');
+VALUES ('Ana', 'MartÌnez');
 
 INSERT INTO Clientes (Nombre, Apellido)
 VALUES ('Luis', 'Sanchez');
-
-
-
-SELECT * FROM Proveedores
-SELECT * FROM Marcas
-SELECT * FROM Categorias
-SELECT * FROM Productos
-SELECT * FROM MovimientoInventario
-
