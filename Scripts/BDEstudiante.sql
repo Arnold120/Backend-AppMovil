@@ -338,3 +338,15 @@ VALUES ('Ana', 'Martínez');
 
 INSERT INTO Clientes (Nombre, Apellido)
 VALUES ('Luis', 'Sanchez');
+<<<<<<< HEAD
+=======
+
+
+
+SELECT * FROM Provedores
+SELECT * FROM Marca
+SELECT * FROM Categoria
+SELECT * FROM Productos
+SELECT * FROM MovimientoInventario
+
+>>>>>>> a183b7e26e329ae2cd96e062dfb72d5f32310a18
