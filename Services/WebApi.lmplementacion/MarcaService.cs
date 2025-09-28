@@ -28,7 +28,7 @@ namespace WebApi.Implementacion
             using (var connection = new SqlConnection(_connectionString))
             {
                 var command = new SqlCommand(
-                    "INSERT INTO Marcas (NombreMarca, Activo, FechaRegistro) OUTPUT INSERTED.IDMarca VALUES (@NombreMarca, @Activo, @FechaRegistro)",
+                    "INSERT INTO Marcas (NombreMarca, Activo, FechaRegistro) OUTPUT INSERTED.Marca_ID VALUES (@NombreMarca, @Activo, @FechaRegistro)",
                     connection);
 
                 command.Parameters.AddWithValue("@NombreMarca", marca.NombreMarca);
@@ -36,7 +36,7 @@ namespace WebApi.Implementacion
                 command.Parameters.AddWithValue("@FechaRegistro", marca.FechaRegistro);
 
                 connection.Open();
-                marca.IDMarca = (int)command.ExecuteScalar();
+                marca.Marca_ID = (int)command.ExecuteScalar();
             }
 
 
@@ -51,10 +51,10 @@ namespace WebApi.Implementacion
             using (var connection = new SqlConnection(_connectionString))
             {
                 var command = new SqlCommand(
-                    "UPDATE Marcas SET NombreMarca = @NombreMarca, Activo = @Activo, FechaRegistro = @FechaRegistro WHERE IDMarca = @IDMarca",
+                    "UPDATE Marcas SET NombreMarca = @NombreMarca, Activo = @Activo, FechaRegistro = @FechaRegistro WHERE Marca_ID = @Marca_ID",
                     connection);
 
-                command.Parameters.AddWithValue("@IDMarca", marca.IDMarca);
+                command.Parameters.AddWithValue("@Marca_ID", marca.Marca_ID);
                 command.Parameters.AddWithValue("@NombreMarca", marca.NombreMarca);
                 command.Parameters.AddWithValue("@Activo", marca.Activo);
                 command.Parameters.AddWithValue("@FechaRegistro", marca.FechaRegistro);
@@ -69,8 +69,8 @@ namespace WebApi.Implementacion
         {
             using (var connection = new SqlConnection(_connectionString))
             {
-                var command = new SqlCommand("DELETE FROM Marcas WHERE IDMarca = @IDMarca", connection);
-                command.Parameters.AddWithValue("@IDMarca", id);
+                var command = new SqlCommand("DELETE FROM Marcas WHERE Marca_ID = @Marca_ID", connection);
+                command.Parameters.AddWithValue("@Marca_ID", id);
 
                 connection.Open();
                 command.ExecuteNonQuery();
@@ -93,7 +93,7 @@ namespace WebApi.Implementacion
                     {
                         var marca = new Marcas
                         {
-                            IDMarca = reader.GetInt32(reader.GetOrdinal("IDMarca")),
+                            Marca_ID = reader.GetInt32(reader.GetOrdinal("Marca_ID")),
                             NombreMarca = reader.GetString(reader.GetOrdinal("NombreMarca")),
                             Activo = reader.GetBoolean(reader.GetOrdinal("Activo")),
                             FechaRegistro = reader.GetDateTime(reader.GetOrdinal("FechaRegistro"))
@@ -109,8 +109,8 @@ namespace WebApi.Implementacion
         {
             using (var connection = new SqlConnection(_connectionString))
             {
-                var command = new SqlCommand("SELECT * FROM Marcas WHERE IDMarca = @IDMarca", connection);
-                command.Parameters.AddWithValue("@IDMarca", id);
+                var command = new SqlCommand("SELECT * FROM Marcas WHERE Marca_ID = @Marca_ID", connection);
+                command.Parameters.AddWithValue("@Marca_ID", id);
 
                 connection.Open();
 
@@ -120,7 +120,7 @@ namespace WebApi.Implementacion
                     {
                         return new Marcas
                         {
-                            IDMarca = reader.GetInt32(reader.GetOrdinal("IDMarca")),
+                            Marca_ID = reader.GetInt32(reader.GetOrdinal("Marca_ID")),
                             NombreMarca = reader.GetString(reader.GetOrdinal("NombreMarca")),
                             Activo = reader.GetBoolean(reader.GetOrdinal("Activo")),
                             FechaRegistro = reader.GetDateTime(reader.GetOrdinal("FechaRegistro"))

@@ -29,7 +29,7 @@ namespace WebApi.Implementacion
                 connection.Open();
 
                 var command = new SqlCommand(
-                    "INSERT INTO Categorias (NombreCategoria, Descripcion, Activo, FechaRegistro) OUTPUT INSERTED.IDCategoria VALUES (@NombreCategoria, @Descripcion, @Activo, @FechaRegistro)",
+                    "INSERT INTO Categorias (NombreCategoria, Descripcion, Activo, FechaRegistro) OUTPUT INSERTED.Categoria_ID VALUES (@NombreCategoria, @Descripcion, @Activo, @FechaRegistro)",
                     connection);
 
                 command.Parameters.AddWithValue("@NombreCategoria", categoria.NombreCategoria);
@@ -37,7 +37,7 @@ namespace WebApi.Implementacion
                 command.Parameters.AddWithValue("@Activo", categoria.Activo);
                 command.Parameters.AddWithValue("@FechaRegistro", DateTime.Now);
 
-                categoria.IDCategoria = (int)command.ExecuteScalar();
+                categoria.Categoria_ID = (int)command.ExecuteScalar();
             }
 
 
@@ -59,7 +59,7 @@ namespace WebApi.Implementacion
                     {
                         var categoria = new Categorias
                         {
-                            IDCategoria = reader.GetInt32(reader.GetOrdinal("IDCategoria")),
+                            Categoria_ID = reader.GetInt32(reader.GetOrdinal("Categoria_ID")),
                             NombreCategoria = reader.GetString(reader.GetOrdinal("NombreCategoria")),
                             Descripcion = reader.GetString(reader.GetOrdinal("Descripcion")),
                             Activo = reader.GetBoolean(reader.GetOrdinal("Activo")),
@@ -78,8 +78,8 @@ namespace WebApi.Implementacion
 
             using (var connection = new SqlConnection(_connectionString))
             {
-                var command = new SqlCommand("SELECT * FROM Categorias WHERE IDCategoria = @IDCategoria", connection);
-                command.Parameters.AddWithValue("@IDCategoria", id);
+                var command = new SqlCommand("SELECT * FROM Categorias WHERE Categoria_ID = @Categoria_ID", connection);
+                command.Parameters.AddWithValue("@Categoria_ID", id);
 
                 connection.Open();
 
@@ -89,7 +89,7 @@ namespace WebApi.Implementacion
                     {
                         categoria = new Categorias
                         {
-                            IDCategoria = reader.GetInt32(reader.GetOrdinal("IDCategoria")),
+                            Categoria_ID = reader.GetInt32(reader.GetOrdinal("Categoria_ID")),
                             NombreCategoria = reader.GetString(reader.GetOrdinal("NombreCategoria")),
                             Descripcion = reader.GetString(reader.GetOrdinal("Descripcion")),
                             Activo = reader.GetBoolean(reader.GetOrdinal("Activo")),
@@ -110,10 +110,10 @@ namespace WebApi.Implementacion
             using (var connection = new SqlConnection(_connectionString))
             {
                 var command = new SqlCommand(
-                    "UPDATE Categorias SET NombreCategoria = @NombreCategoria, Descripcion = @Descripcion, Activo = @Activo WHERE IDCategoria = @IDCategoria",
+                    "UPDATE Categorias SET NombreCategoria = @NombreCategoria, Descripcion = @Descripcion, Activo = @Activo WHERE Categoria_ID = @Categoria_ID",
                     connection);
 
-                command.Parameters.AddWithValue("@IDCategoria", categoria.IDCategoria);
+                command.Parameters.AddWithValue("@Categoria_ID", categoria.Categoria_ID);
                 command.Parameters.AddWithValue("@NombreCategoria", categoria.NombreCategoria);
                 command.Parameters.AddWithValue("@Descripcion", categoria.Descripcion);
                 command.Parameters.AddWithValue("@Activo", categoria.Activo);
@@ -128,8 +128,8 @@ namespace WebApi.Implementacion
         {
             using (var connection = new SqlConnection(_connectionString))
             {
-                var command = new SqlCommand("DELETE FROM Categorias WHERE IDCategoria = @IDCategoria", connection);
-                command.Parameters.AddWithValue("@IDCategoria", id);
+                var command = new SqlCommand("DELETE FROM Categorias WHERE Categoria_ID = @Categoria_ID", connection);
+                command.Parameters.AddWithValue("@Categoria_ID", id);
 
                 connection.Open();
                 command.ExecuteNonQuery();

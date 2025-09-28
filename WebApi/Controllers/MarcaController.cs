@@ -64,18 +64,18 @@ namespace WebApi.Controllers
 
             if (!ModelState.IsValid)
             {
-                return BadRequest(new { message = "La solicitud contiene datos inv�lidos." });
+                return BadRequest(new { message = "La solicitud contiene datos invalidos." });
             }
 
             try
             {
                 var newMarca = _marcaService.Add(marca);
-                return CreatedAtAction(nameof(GetByID), new { id = newMarca.IDMarca }, newMarca);
+                return CreatedAtAction(nameof(GetByID), new { id = newMarca.Marca_ID }, newMarca);
             }
             catch (Exception ex)
             {
 
-                return StatusCode(500, new { message = "Error interno del servidor." });
+                return StatusCode(500, new { message = "Error al agregar la marca." });
             }
         }
 
@@ -84,7 +84,7 @@ namespace WebApi.Controllers
         [HttpPut("{id}")]
         public IActionResult Update(int id, [FromBody] Marcas marca)
         {
-            if (id <= 0 || marca == null || id != marca.IDMarca)
+            if (id <= 0 || marca == null || id != marca.Marca_ID)
             {
                 return BadRequest(new { message = "El ID proporcionado es incorrecto o el cuerpo de la solicitud est� vac�o." });
             }
@@ -100,7 +100,7 @@ namespace WebApi.Controllers
                 var existingMarca = _marcaService.GetByID(id);
                 if (existingMarca == null)
                 {
-                    return NotFound(new { message = $"No se encontr� la marca con ID {id}." });
+                    return NotFound(new { message = $"No se encontro la marca con ID {id}." });
                 }
 
                 _marcaService.Update(marca);
@@ -109,7 +109,7 @@ namespace WebApi.Controllers
             catch (Exception ex)
             {
 
-                return StatusCode(500, new { message = "Error interno del servidor." });
+                return StatusCode(500, new { message = "Error al actualizar la marca." });
             }
         }
 

@@ -25,7 +25,7 @@ namespace WebApi.Controllers
 
             if (categorias == null || !categorias.Any())
             {
-                return NotFound(new { message = "No se encontraron categor�as." });
+                return NotFound(new { message = "No se encontraron categorias." });
             }
 
             return Ok(categorias);
@@ -49,7 +49,7 @@ namespace WebApi.Controllers
             try
             {
                 var createdCategoria = _categoriaService.Add(categoria);
-                return CreatedAtAction(nameof(GetByID), new { id = createdCategoria.IDCategoria }, createdCategoria);
+                return CreatedAtAction(nameof(GetByID), new { id = createdCategoria.Categoria_ID }, createdCategoria);
             }
             catch (Exception ex)
             {
@@ -90,7 +90,7 @@ namespace WebApi.Controllers
         [HttpPut("{id}")]
         public IActionResult Update(int id, [FromBody] Categorias categoria)
         {
-            if (id <= 0 || categoria == null || id != categoria.IDCategoria)
+            if (id <= 0 || categoria == null || id != categoria.Categoria_ID)
             {
                 return BadRequest(new { message = "El ID es inv�lido o los datos de la categor�a no coinciden." });
             }
