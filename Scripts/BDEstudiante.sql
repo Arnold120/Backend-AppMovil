@@ -14,6 +14,11 @@ CREATE TABLE Usuario (
 	Salt VARBINARY(64),
 	FechaRegistro DATETIME
 );
+select * from Usuario
+select * from Rol
+select * from UsuarioRol
+select * from Marca
+select * from Clientes
 
 CREATE TABLE Rol (
 	Rol_ID INT PRIMARY KEY IDENTITY,
@@ -157,8 +162,10 @@ CREATE TABLE Ventas (
 	Estado VARCHAR(20) DEFAULT 'Activo' CHECK (Estado IN ('Activo','Anulado')), --En caso q la venta sea anulada
 	FOREIGN KEY (Usuario_ID) REFERENCES Usuario(Usuario_ID),
 	FOREIGN KEY (Cliente_ID) REFERENCES Clientes(Cliente_ID)
-);
 
+
+
+select * from Ventas
 	-- Detalles de Ventas (por producto)
 CREATE TABLE Detalles_Ventas (
 	DetalleVenta_ID INT PRIMARY KEY IDENTITY,
@@ -173,6 +180,8 @@ CREATE TABLE Detalles_Ventas (
 	FOREIGN KEY (Venta_ID) REFERENCES Ventas(Venta_ID),
 	FOREIGN KEY (Producto_ID) REFERENCES Productos(Producto_ID)
 );
+
+select * from Detalles_Ventas
 
 CREATE TABLE Factura (
     Factura_ID INT PRIMARY KEY IDENTITY,
@@ -338,15 +347,104 @@ VALUES ('Ana', 'Martínez');
 
 INSERT INTO Clientes (Nombre, Apellido)
 VALUES ('Luis', 'Sanchez');
-<<<<<<< HEAD
-=======
 
 
+-- Eliminar los detalles de las ventas (para evitar conflicto de clave foránea)
+DELETE FROM Detalles_Ventas;
 
-SELECT * FROM Provedores
-SELECT * FROM Marca
-SELECT * FROM Categoria
-SELECT * FROM Productos
-SELECT * FROM MovimientoInventario
+-- Eliminar las ventas
+DELETE FROM Ventas;
 
->>>>>>> a183b7e26e329ae2cd96e062dfb72d5f32310a18
+select * from Ventas;
+select * from Detalles_Ventas;
+
+select * from Productos
+
+-- 1. Insertar la primera venta
+INSERT INTO Ventas (
+    Usuario_ID, Cliente_ID, FechaVenta, CantidadTotal, MontoRecibido, MontoDevuelto, 
+    SubTotal, Descuento, IVA, Total
+)
+VALUES 
+(1, 1, GETDATE(), 3, 600.00, 75.00, 500.00, 50.00, 75.00, 525.00);
+
+DECLARE @Venta_ID1 INT;
+SET @Venta_ID1 = SCOPE_IDENTITY();
+
+-- Insertar los detalles de la primera venta
+INSERT INTO Detalles_Ventas (Venta_ID, Producto_ID, Cantidad, PrecioUnitario, SubTotal, IVA, Total, TipoComprobante)
+VALUES 
+(@Venta_ID1, 1, 2, 100.00, 200.00, 30.00, 230.00, 'Factura'),
+(@Venta_ID1, 2, 1, 50.00, 50.00, 7.50, 57.50, 'Factura');
+
+-- 2. Insertar la segunda venta
+INSERT INTO Ventas (
+    Usuario_ID, Cliente_ID, FechaVenta, CantidadTotal, MontoRecibido, MontoDevuelto, 
+    SubTotal, Descuento, IVA, Total
+)
+VALUES 
+(1, 2, GETDATE(), 5, 1000.00, 150.00, 850.00, 100.00, 127.50, 977.50);
+
+DECLARE @Venta_ID2 INT;
+SET @Venta_ID2 = SCOPE_IDENTITY();
+
+-- Insertar los detalles de la segunda venta
+INSERT INTO Detalles_Ventas (Venta_ID, Producto_ID, Cantidad, PrecioUnitario, SubTotal, IVA, Total, TipoComprobante)
+VALUES 
+(@Venta_ID2, 3, 3, 120.00, 360.00, 54.00, 414.00, 'Factura'),
+(@Venta_ID2, 4, 2, 80.00, 160.00, 24.00, 184.00, 'Factura');
+
+-- 3. Insertar la tercera venta
+INSERT INTO Ventas (
+    Usuario_ID, Cliente_ID, FechaVenta, CantidadTotal, MontoRecibido, MontoDevuelto, 
+    SubTotal, Descuento, IVA, Total
+)
+VALUES 
+(1, 3, GETDATE(), 4, 800.00, 50.00, 750.00, 70.00, 105.00, 825.00);
+
+DECLARE @Venta_ID3 INT;
+SET @Venta_ID3 = SCOPE_IDENTITY();
+
+-- Insertar los detalles de la tercera venta
+INSERT INTO Detalles_Ventas (Venta_ID, Producto_ID, Cantidad, PrecioUnitario, SubTotal, IVA, Total, TipoComprobante)
+VALUES 
+(@Venta_ID3, 5, 1, 200.00, 200.00, 30.00, 230.00, 'Factura'),
+(@Venta_ID3, 6, 2, 120.00, 240.00, 36.00, 276.00, 'Factura');
+
+-- 4. Insertar la cuarta venta
+INSERT INTO Ventas (
+    Usuario_ID, Cliente_ID, FechaVenta, CantidadTotal, MontoRecibido, MontoDevuelto, 
+    SubTotal, Descuento, IVA, Total
+)
+VALUES 
+(1, 4, GETDATE(), 6, 1200.00, 100.00, 1100.00, 120.00, 165.00, 1265.00);
+
+DECLARE @Venta_ID4 INT;
+SET @Venta_ID4 = SCOPE_IDENTITY();
+
+-- Insertar los detalles de la cuarta venta
+INSERT INTO Detalles_Ventas (Venta_ID, Producto_ID, Cantidad, PrecioUnitario, SubTotal, IVA, Total, TipoComprobante)
+VALUES 
+(@Venta_ID4, 7, 4, 150.00, 600.00, 90.00, 690.00, 'Factura'),
+(@Venta_ID4, 8, 2, 300.00, 600.00, 90.00, 690.00, 'Factura');
+
+-- 5. Insertar la quinta venta
+INSERT INTO Ventas (
+    Usuario_ID, Cliente_ID, FechaVenta, CantidadTotal, MontoRecibido, MontoDevuelto, 
+    SubTotal, Descuento, IVA, Total
+)
+VALUES 
+(1, 5, GETDATE(), 7, 1400.00, 50.00, 1350.00, 150.00, 202.50, 1552.50);
+
+DECLARE @Venta_ID5 INT;
+SET @Venta_ID5 = SCOPE_IDENTITY();
+
+-- Insertar los detalles de la quinta venta
+INSERT INTO Detalles_Ventas (Venta_ID, Producto_ID, Cantidad, PrecioUnitario, SubTotal, IVA, Total, TipoComprobante)
+VALUES 
+(@Venta_ID5, 9, 5, 100.00, 500.00, 75.00, 575.00, 'Factura'),
+(@Venta_ID5, 10, 2, 75.00, 150.00, 22.50, 172.50, 'Factura');
+
+
+select * from Devoluciones
+select * from Ventas

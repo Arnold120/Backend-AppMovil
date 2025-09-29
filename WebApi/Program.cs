@@ -35,7 +35,7 @@ builder.Services.AddScoped<IRolService, RolService>();
 //builder.Services.AddScoped<IFacturaService, FacturaService>();
 //builder.Services.AddScoped<IVentaService, VentaService>();
 //builder.Services.AddScoped<IDetalleVentaService, DetalleVentaService>();
-//builder.Services.AddScoped<IDevolucionService, DevolucionService>();
+builder.Services.AddScoped<IDevolucionService, DevolucionService>();
 //builder.Services.AddScoped<IDetalleDevolucionService, DetalleDevolucionService>();
 //builder.Services.AddScoped<IProductoService, ProductoService>();
 //builder.Services.AddScoped<IProductoDañadoService, ProductoDañadoService>();

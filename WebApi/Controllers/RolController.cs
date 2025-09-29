@@ -37,7 +37,7 @@ namespace WebApi.Controllers
             }
         }
 
-        [Authorize(Roles = "Propietario")]
+        //[Authorize(Roles = "Propietario")]
         [HttpGet("ObtenerRoles")]
         public async Task<IActionResult> ObtenerRoles()
         {
@@ -52,7 +52,7 @@ namespace WebApi.Controllers
             }
         }
 
-        [Authorize(Roles = "Propietario")]
+        //[Authorize(Roles = "Propietario")]
         [HttpDelete("EliminarRol")]
         public async Task<IActionResult> EliminarRol([FromBody] EliminarRolDto request)
         {
