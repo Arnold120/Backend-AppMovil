@@ -23,9 +23,9 @@ builder.Services.AddCors(options =>
 builder.Services.AddScoped<IUsuarioRolService, UsuarioRolService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<IRolService, RolService>();
-//builder.Services.AddScoped<IProveedorService, ProveedorService>();
-//builder.Services.AddScoped<ICompraService, CompraService>();
-//builder.Services.AddScoped<IDetalleCompraService, DetalleCompraService>()
+builder.Services.AddScoped<IProveedorService, ProveedorService>();
+builder.Services.AddScoped<ICompraService, CompraService>();
+builder.Services.AddScoped<IDetalleCompraService, DetalleCompraService>();
 //builder.Services.AddScoped<IBitacoraService, BitacoraService>();
 //builder.Services.AddScoped<IMarcaService, MarcaService>();
 //builder.Services.AddScoped<ICategoriaService, CategoriaService>();
@@ -35,9 +35,9 @@ builder.Services.AddScoped<IRolService, RolService>();
 //builder.Services.AddScoped<IDetalleVentaService, DetalleVentaService>();
 //builder.Services.AddScoped<IDevolucionService, DevolucionService>();
 //builder.Services.AddScoped<IDetalleDevolucionService, DetalleDevolucionService>();
-//builder.Services.AddScoped<IProductoService, ProductoService>();
+builder.Services.AddScoped<IProductoService, ProductoService>();
 //builder.Services.AddScoped<IProductoDañadoService, ProductoDañadoService>();
-//builder.Services.AddScoped<IMovimientoInventarioService, MovimientoInventarioService>();
+builder.Services.AddScoped<IMovimientoInventarioService, MovimientoInventarioService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
