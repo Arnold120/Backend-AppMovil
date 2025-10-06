@@ -447,4 +447,5 @@ VALUES
 
 
 select * from Devoluciones
+select * from Detalles_Ventas
 select * from Ventas
