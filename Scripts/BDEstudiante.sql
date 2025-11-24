@@ -15,7 +15,9 @@ CREATE TABLE Usuario (
 	NombreUsuario VARCHAR(100) UNIQUE,
 	Contraseña VARCHAR(100),
 	Salt VARBINARY(64),
-	FechaRegistro DATETIME
+	FechaRegistro DATETIME,
+	UltimaActividad DATETIME,
+	EnSesion BIT DEFAULT 0
 );
 
 CREATE TABLE Rol (
@@ -38,8 +40,8 @@ CREATE TABLE UsuarioRol (
 -- tabla Clientes
 CREATE TABLE Clientes (
     Cliente_ID INT PRIMARY KEY IDENTITY,
-    Nombre VARCHAR(100) NOT NULL DEFAULT 'Consumidor Final',
-    Apellido VARCHAR(100) NOT NULL DEFAULT 'No especificado',
+    Nombre VARCHAR(100),
+    Apellido VARCHAR(100) NULL,
     Direccion VARCHAR(255) NULL,
     Telefono VARCHAR(50) NULL,
     Email VARCHAR(100) NULL,
@@ -47,7 +49,7 @@ CREATE TABLE Clientes (
     FechaRegistro DATETIME DEFAULT GETDATE()
 );
 
-CREATE TABLE Provedores(
+CREATE TABLE Proveedores(
     Proveedor_ID INT PRIMARY KEY IDENTITY,
     NombreEmpresa VARCHAR(255),  -- la sucursal del proveedor
     Direccion VARCHAR(255),
@@ -58,14 +60,14 @@ CREATE TABLE Provedores(
     PorcentajeCobertura DECIMAL(5,2) DEFAULT 0  -- % del costo que cubre, ej: 100 = cubre todo
 );
 
-CREATE TABLE Marca(
+CREATE TABLE Marcas(
 	Marca_ID INT PRIMARY KEY IDENTITY,
 	NombreMarca VARCHAR(100),
 	Activo BIT,
 	FechaRegistro DATETIME
 );
 
-CREATE TABLE Categoria(
+CREATE TABLE Categorias(
 	Categoria_ID INT PRIMARY KEY IDENTITY,
 	NombreCategoria VARCHAR(100),
 	Descripcion VARCHAR(100),
@@ -84,8 +86,8 @@ CREATE TABLE Productos (
 	Cantidad INT DEFAULT 0,
 	Activo BIT,
 	FechaRegistro DATETIME,
-	FOREIGN KEY (Marca_ID) REFERENCES Marca(Marca_ID),
-	FOREIGN KEY (Categoria_ID) REFERENCES Categoria(Categoria_ID)
+	FOREIGN KEY (Marca_ID) REFERENCES Marcas(Marca_ID),
+	FOREIGN KEY (Categoria_ID) REFERENCES Categorias(Categoria_ID)
 );
 
 -- Tabla de Precios (estructura más clara y completa)(OPCION MAS RENTABLE)
@@ -114,6 +116,7 @@ CREATE TABLE MovimientoInventario (
 	Referencia_ID INT NULL, --MAS Q TODO EL ID DE QUIEN HIZO LA COMPRA, VENTA O DEVOLUCION
 	TipoReferencia VARCHAR(50) NULL, -- LA TABLA EN QUE SE HIZO LOS CAMBIOS
 	FechaMovimiento DATETIME DEFAULT GETDATE(),
+	EstadoMovimiento VARCHAR(20) DEFAULT 'Activo' CHECK (EstadoMovimiento IN ('Activo', 'Agotado')), --ESTADO QUE SIRVE MAS QUE TODO EN CASO Q SE QUEDE INACTIVO
 	FOREIGN KEY (Producto_ID) REFERENCES Productos(Producto_ID),
 	FOREIGN KEY (PrecioProducto_ID) REFERENCES PrecioProducto(Precio_ID)
 );
@@ -128,7 +131,7 @@ CREATE TABLE Compras (
 	IVATotal DECIMAL(10,2) DEFAULT 0, --IVA en general: Si se compraron varios productos y algunos traen descuento y otros no entonces aqui se suma el total en general de esos IVAS
     SubTotal DECIMAL(10,2) NOT NULL, -- Suma antes de IVA (CantidadTotal * Monto total)
     Total DECIMAL(10,2),    -- Total final ([CantidadTotal * Monto total] + IVA)
-	FOREIGN KEY (Proveedor_ID) REFERENCES Provedores(Proveedor_ID),
+	FOREIGN KEY (Proveedor_ID) REFERENCES Proveedores(Proveedor_ID),
 	FOREIGN KEY (Usuario_ID) REFERENCES Usuario(Usuario_ID)
 );
 
@@ -225,7 +228,7 @@ CREATE TABLE Devoluciones (
 	TotalDevuelto DECIMAL(12,2), -- total a devolver o subtotal + iva
 	Motivo VARCHAR(255), 
 	TipoDevolucion VARCHAR(20) DEFAULT 'Parcial' CHECK (TipoDevolucion IN ('Parcial','Total')), -- parcial es algunos articulos y total toda la venta
-	Activo BIT,
+	Estado VARCHAR(20) DEFAULT 'Procesada',
 	FOREIGN KEY (Venta_ID) REFERENCES Ventas(Venta_ID) -- la devolucion es de una venta especifica
 );
 
@@ -286,67 +289,6 @@ CREATE TABLE ReclamosProveedor (
     MontoRecuperado DECIMAL(12,2) DEFAULT 0, --lo que devolvio el proveedor
     FechaReclamo DATETIME DEFAULT GETDATE(),
     FechaRespuesta DATETIME NULL,
-    FOREIGN KEY (Proveedor_ID) REFERENCES Provedores(Proveedor_ID),
+    FOREIGN KEY (Proveedor_ID) REFERENCES Proveedores(Proveedor_ID),
     FOREIGN KEY (Producto_ID) REFERENCES Productos(Producto_ID)
 );
-
-INSERT INTO Proveedores (NombreEmpresa, Direccion, Telefono, Email)
-VALUES 
-('Papelería Central', 'Av. Insurgentes 123, CDMX', '555-123-4567', 'contacto@papeleriacentral.com'),
-('Distribuidora Escolar S.A.', 'Calle Educación 45, Guadalajara', '333-789-6543', 'ventas@distribuidoraescolar.com'),
-('Útiles y Más', 'Boulevard del Estudiante 789, Monterrey', '818-456-1122', 'info@utilesymas.mx'),
-('Proveedora del Norte', 'Calle Reforma 88, Chihuahua', '614-333-9988', 'norte@proveedora.com'),
-('Suministros Académicos', 'Av. Universidad 432, Puebla', '222-444-7788', 'contacto@suministrosac.com');
-
-INSERT INTO Categorias (NombreCategoria, Descripcion)
-VALUES 
-('Cuadernos', 'Cuadernos escolares de diferentes tamaños y diseños'),
-('Escritura', 'Artículos de escritura como lápices, plumas, marcadores'),
-('Papelería General', 'Hojas, carpetas, sobres y otros insumos'),
-('Arte y Dibujo', 'Materiales de arte como colores, crayones, pinceles'),
-('Oficina', 'Artículos para oficina como engrapadoras, perforadoras, clips');
-
-INSERT INTO Marcas (NombreMarca)
-VALUES 
-('Norma'),
-('Bic'),
-('Pelikan'),
-('Faber-Castell'),
-('Kores');
-
-INSERT INTO Productos (IDMarca, IDCategoria, NombreProducto)
-VALUES 
-(1, 1, 'Cuaderno Profesional Norma 100 hojas'),
-(2, 2, 'Bolígrafo Bic Azul'),
-(3, 2, 'Marcador Permanente Pelikan Negro'),
-(4, 4, 'Colores de Madera Faber-Castell 12 piezas'),
-(5, 3, 'Corrector Líquido Kores'),
-(2, 2, 'Lápiz delgado Bic HB2'),
-(3, 3, 'Carpeta tamaño carta con broche Pelikan'),
-(1, 1, 'Cuaderno Norma Rayado 200 hojas'),
-(4, 4, 'Crayones Faber-Castell 24 colores'),
-(5, 5, 'Grapadora de oficina Kores metálica');
-
-INSERT INTO Clientes (Nombre, Apellido)
-VALUES ('Juan', 'Pérez');
-
-INSERT INTO Clientes (Nombre, Apellido)
-VALUES ('María', 'Gómez');
-
-INSERT INTO Clientes (Nombre, Apellido)
-VALUES ('Carlos', 'López');
-
-INSERT INTO Clientes (Nombre, Apellido)
-VALUES ('Ana', 'Martínez');
-
-INSERT INTO Clientes (Nombre, Apellido)
-VALUES ('Luis', 'Sanchez');
-
-
-
-SELECT * FROM Proveedores
-SELECT * FROM Marcas
-SELECT * FROM Categorias
-SELECT * FROM Productos
-SELECT * FROM MovimientoInventario
-

@@ -16,7 +16,7 @@ namespace WebApi.Controllers
             _marcaService = marcaService ?? throw new ArgumentNullException(nameof(marcaService));
         }
 
-        //[Authorize(Roles = "Propietario, Administrador, Empleado")]
+        [Authorize(Roles = "Propietario, Administrador, Empleado")]
         [HttpGet]
         public ActionResult<List<Marcas>> GetAll()
         {
@@ -36,7 +36,7 @@ namespace WebApi.Controllers
             }
         }
 
-        //[Authorize(Roles = "Propietario, Administrador, Empleado")]
+        [Authorize(Roles = "Propietario, Administrador, Empleado")]
         [HttpGet("{id}")]
         public IActionResult GetByID(int id)
         {
@@ -53,7 +53,7 @@ namespace WebApi.Controllers
             return Ok(marca);
         }
 
-        //[Authorize(Roles = "Propietario, Administrador")]
+        [Authorize(Roles = "Propietario, Administrador")]
         [HttpPost]
         public IActionResult Add([FromBody] Marcas marca)
         {
@@ -80,7 +80,7 @@ namespace WebApi.Controllers
         }
 
 
-        //[Authorize(Roles = "Propietario, Administrador")]
+        [Authorize(Roles = "Propietario, Administrador")]
         [HttpPut("{id}")]
         public IActionResult Update(int id, [FromBody] Marcas marca)
         {
@@ -113,7 +113,7 @@ namespace WebApi.Controllers
             }
         }
 
-        //[Authorize(Roles = "Propietario, Administrador")]
+        [Authorize(Roles = "Propietario, Administrador")]
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {

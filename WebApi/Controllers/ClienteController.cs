@@ -17,7 +17,7 @@ namespace WebApi.Controllers
             _clienteService = clienteService;
         }
 
-        //[Authorize(Roles = "Propietario, Administrador, Empleado")]
+        [Authorize(Roles = "Propietario, Administrador, Empleado")]
         [HttpGet]
         public IActionResult GetAll()
         {
@@ -31,7 +31,7 @@ namespace WebApi.Controllers
             return Ok(clientes);
         }
 
-     //[Authorize(Roles = "Propietario, Administrador, Empleado")]
+        [Authorize(Roles = "Propietario, Administrador, Empleado")]
         [HttpGet("{id:int}")]
         public IActionResult GetById(int id)
         {
@@ -43,7 +43,7 @@ namespace WebApi.Controllers
             return Ok(cliente);
         }
 
-        //[Authorize(Roles = "Propietario, Administrador, Empleado")]
+        [Authorize(Roles = "Propietario, Administrador, Empleado")]
         [HttpPost]
         public async Task<IActionResult> Register([FromBody] Cliente cliente)
         {
@@ -59,7 +59,7 @@ namespace WebApi.Controllers
         }
 
 
-        //[Authorize(Roles = "Propietario, Administrador")]
+        [Authorize(Roles = "Propietario, Administrador")]
         [HttpPut("{id}")]
         public IActionResult Update(int id, [FromBody] Cliente cliente)
         {
@@ -74,7 +74,7 @@ namespace WebApi.Controllers
             }
         }
 
-        //[Authorize(Roles = "Propietario, Administrador")]
+        [Authorize(Roles = "Propietario, Administrador")]
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {

@@ -17,7 +17,7 @@ namespace WebApi.Controllers
             _categoriaService = categoriaService;
         }
 
-        //[Authorize(Roles = "Propietario, Administrador, Empleado")]
+        [Authorize(Roles = "Propietario, Administrador, Empleado")]
         [HttpGet]
         public IActionResult GetAll()
         {
@@ -32,7 +32,7 @@ namespace WebApi.Controllers
         }
 
 
-        //[Authorize(Roles = "Propietario, Administrador")]
+        [Authorize(Roles = "Propietario, Administrador")]
         [HttpPost]
         public IActionResult Create([FromBody] Categorias categoria)
         {
@@ -57,7 +57,7 @@ namespace WebApi.Controllers
             }
         }
 
-        ////[Authorize(Roles = "Propietario, Administrador, Empleado")]
+        [Authorize(Roles = "Propietario, Administrador, Empleado")]
         [HttpGet("{id}")]
         public IActionResult GetByID(int id)
         {
@@ -86,7 +86,7 @@ namespace WebApi.Controllers
         }
 
 
-        //[Authorize(Roles = "Propietario, Administrador")]
+        [Authorize(Roles = "Propietario, Administrador")]
         [HttpPut("{id}")]
         public IActionResult Update(int id, [FromBody] Categorias categoria)
         {
@@ -117,7 +117,7 @@ namespace WebApi.Controllers
             }
         }
 
-        //[Authorize(Roles = "Propietario, Administrador")]
+        [Authorize(Roles = "Propietario, Administrador")]
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {

@@ -8,7 +8,7 @@ namespace WebApi.Controllers
     [Route("api/[controller]")]
     [ApiController]
 
-    //[Authorize(Roles = "Propietario")]
+    [Authorize(Roles = "Propietario")]
     public class UsuarioRolController : ControllerBase
     {
         private readonly IUsuarioRolService _usuarioRolService;

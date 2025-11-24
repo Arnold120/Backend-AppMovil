@@ -75,7 +75,8 @@ namespace WebApi.Controllers
         [HttpPost]
         public async Task<IActionResult> RegisterVenta([FromBody] VentaDto ventaDto)
         {
-            var userIdClaim = User?.Claims?.FirstOrDefault(c => c.Type == ClaimTypes.Name);
+            //var userIdClaim = User?.Claims?.FirstOrDefault(c => c.Type == ClaimTypes.Name);
+            var userIdClaim = User?.Claims?.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
             if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
                 return Unauthorized(new { message = "No se pudo obtener el ID del usuario desde el token." });
 
@@ -129,7 +130,10 @@ namespace WebApi.Controllers
                 if (ventaExistente == null)
                     return NotFound(new { message = "Venta no encontrada." });
 
-                var userId = int.Parse(User.FindFirstValue(ClaimTypes.Name));
+                //var userId = int.Parse(User.FindFirstValue(ClaimTypes.Name));
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+                    return Unauthorized(new { message = "No se pudo obtener el ID del usuario desde el token." });
 
                 ventaExistente.Usuario_ID = userId;        
                 ventaExistente.Cliente_ID = ventaDto.Cliente_ID; 

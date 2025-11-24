@@ -7,12 +7,16 @@ namespace WebApi.Implementacion
 {
     public class VentaService : IVentaService
     {
-        private readonly string _connectionString;
+        private readonly string? _connectionString;
 
         public VentaService(IConfiguration configuration)
         {
-            _connectionString = configuration.GetConnectionString("DatabaseConnection")
-                ?? throw new InvalidOperationException("Cadena de conexión no configurada.");
+            _connectionString = configuration.GetConnectionString("DatabaseConnection");
+
+            if (string.IsNullOrEmpty(_connectionString))
+            {
+                throw new InvalidOperationException("Cadena de conexión no configurada.");
+            }
         }
 
         public async Task<List<Venta>> GetAllAsync()
@@ -62,8 +66,8 @@ namespace WebApi.Implementacion
         {
             using (var connection = new SqlConnection(_connectionString))
             {
-                var command = new SqlCommand(
-                    "SELECT * FROM Ventas WHERE Venta_ID = @Venta_ID",
+                var command = new SqlCommand(@"
+                    SELECT * FROM Ventas WHERE Venta_ID = @Venta_ID",
                     connection);
                 command.Parameters.AddWithValue("@Venta_ID", idVenta);
 
@@ -166,7 +170,7 @@ namespace WebApi.Implementacion
 
                 foreach (var detalle in venta.DetallesVenta)
                 {
-                    var stockDisponible = await ObtenerStockDisponible(detalle.Producto_ID, connection, transaction);
+                    var stockDisponible = await ObtenerStockProducto(detalle.Producto_ID, connection, transaction);
                     if (stockDisponible < detalle.Cantidad)
                         throw new InvalidOperationException($"Stock insuficiente para el producto ID {detalle.Producto_ID}. Disponible: {stockDisponible}, Solicitado: {detalle.Cantidad}");
                 }
@@ -222,6 +226,13 @@ namespace WebApi.Implementacion
 
                     await insertDetalleCmd.ExecuteNonQueryAsync();
 
+                    await ActualizarStockProducto(
+                        detalle.Producto_ID,
+                        -detalle.Cantidad,
+                        connection,
+                        transaction
+                    );
+
                     await RegistrarMovimientoInventario(
                         detalle.Producto_ID,
                         detalle.Cantidad,
@@ -251,36 +262,33 @@ namespace WebApi.Implementacion
 
             try
             {
+                var ventaOriginal = await GetByIDAsync(venta.Venta_ID);
+
+                foreach (var detalleOriginal in ventaOriginal.DetallesVenta)
+                {
+                    await ActualizarStockProducto(
+                        detalleOriginal.Producto_ID,
+                        detalleOriginal.Cantidad,
+                        connection,
+                        transaction
+                    );
+
+                    await RegistrarMovimientoInventario(
+                        detalleOriginal.Producto_ID,
+                        detalleOriginal.Cantidad,
+                        detalleOriginal.PrecioUnitario,
+                        venta.Venta_ID,
+                        "AnulacionVenta",
+                        connection,
+                        transaction
+                    );
+                }
+
                 var anularVentaCmd = new SqlCommand(
                     "UPDATE Ventas SET Estado = 'Anulado' WHERE Venta_ID = @Venta_ID",
                     connection, transaction);
                 anularVentaCmd.Parameters.AddWithValue("@Venta_ID", venta.Venta_ID);
                 await anularVentaCmd.ExecuteNonQueryAsync();
-
-                var detallesOriginalesCmd = new SqlCommand(
-                    "SELECT * FROM Detalles_Ventas WHERE Venta_ID = @Venta_ID",
-                    connection, transaction);
-                detallesOriginalesCmd.Parameters.AddWithValue("@Venta_ID", venta.Venta_ID);
-
-                using (var reader = await detallesOriginalesCmd.ExecuteReaderAsync())
-                {
-                    while (await reader.ReadAsync())
-                    {
-                        var productoId = reader.GetInt32(reader.GetOrdinal("Producto_ID"));
-                        var cantidad = reader.GetInt32(reader.GetOrdinal("Cantidad"));
-                        var precioUnitario = reader.GetDecimal(reader.GetOrdinal("PrecioUnitario"));
-
-                        await RegistrarMovimientoInventario(
-                            productoId,
-                            cantidad,
-                            precioUnitario,
-                            venta.Venta_ID,
-                            "AnulacionVenta",
-                            connection,
-                            transaction
-                        );
-                    }
-                }
 
                 var nuevaVenta = new Venta
                 {
@@ -326,25 +334,31 @@ namespace WebApi.Implementacion
                 if (estado == null)
                     throw new KeyNotFoundException("Venta no encontrada.");
 
-                if (estado != "Anulado")
-                {
-                    var detallesCmd = new SqlCommand(
-                        "SELECT * FROM Detalles_Ventas WHERE Venta_ID = @Venta_ID",
-                        connection, transaction);
-                    detallesCmd.Parameters.AddWithValue("@Venta_ID", idVenta);
+                var detallesCmd = new SqlCommand(
+                    "SELECT * FROM Detalles_Ventas WHERE Venta_ID = @Venta_ID",
+                    connection, transaction);
+                detallesCmd.Parameters.AddWithValue("@Venta_ID", idVenta);
 
-                    using (var reader = await detallesCmd.ExecuteReaderAsync())
+                using (var reader = await detallesCmd.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
                     {
-                        while (await reader.ReadAsync())
+                        var productoId = reader.GetInt32(reader.GetOrdinal("Producto_ID"));
+                        var cantidad = reader.GetInt32(reader.GetOrdinal("Cantidad"));
+
+                        if (estado != "Anulado")
                         {
-                            var productoId = reader.GetInt32(reader.GetOrdinal("Producto_ID"));
-                            var cantidad = reader.GetInt32(reader.GetOrdinal("Cantidad"));
-                            var precioUnitario = reader.GetDecimal(reader.GetOrdinal("PrecioUnitario"));
+                            await ActualizarStockProducto(
+                                productoId,
+                                cantidad,
+                                connection,
+                                transaction
+                            );
 
                             await RegistrarMovimientoInventario(
                                 productoId,
                                 cantidad,
-                                precioUnitario,
+                                reader.GetDecimal(reader.GetOrdinal("PrecioUnitario")),
                                 idVenta,
                                 "Devolucion",
                                 connection,
@@ -387,19 +401,68 @@ namespace WebApi.Implementacion
             await connection.OpenAsync();
 
             var command = new SqlCommand(@"
-                SELECT TOP 1 pp.PrecioVenta  -- Cambiado para usar PrecioProducto
+                SELECT TOP 1 pp.PrecioVenta
                 FROM MovimientoInventario mi
                 INNER JOIN PrecioProducto pp ON mi.PrecioProducto_ID = pp.Precio_ID
                 WHERE mi.Producto_ID = @Producto_ID 
                 AND mi.TipoMovimiento = 'Entrada' 
                 AND mi.EstadoMovimiento = 'Activo'
-                ORDER BY mi.FechaMovimiento ASC", 
+                ORDER BY mi.FechaMovimiento ASC",
                 connection);
 
             command.Parameters.AddWithValue("@Producto_ID", idProducto);
 
             var result = await command.ExecuteScalarAsync();
             return result != null && result != DBNull.Value ? Convert.ToDecimal(result) : 0m;
+        }
+
+        public async Task<List<Venta>> GetVentasPorFechaAsync(DateTime fechaInicio, DateTime fechaFin)
+        {
+            var ventas = new List<Venta>();
+
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                var command = new SqlCommand(@"
+                    SELECT v.*
+                    FROM Ventas v
+                    WHERE v.FechaVenta BETWEEN @FechaInicio AND @FechaFin
+                    AND v.Estado = 'Activo'
+                    ORDER BY v.FechaVenta DESC",
+                    connection);
+
+                command.Parameters.AddWithValue("@FechaInicio", fechaInicio);
+                command.Parameters.AddWithValue("@FechaFin", fechaFin.AddDays(1).AddSeconds(-1));
+
+                await connection.OpenAsync();
+
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        var venta = new Venta
+                        {
+                            Venta_ID = reader.GetInt32(reader.GetOrdinal("Venta_ID")),
+                            Usuario_ID = reader.GetInt32(reader.GetOrdinal("Usuario_ID")),
+                            Cliente_ID = reader.IsDBNull(reader.GetOrdinal("Cliente_ID")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("Cliente_ID")),
+                            FechaVenta = reader.GetDateTime(reader.GetOrdinal("FechaVenta")),
+                            CantidadTotal = reader.GetInt32(reader.GetOrdinal("CantidadTotal")),
+                            MontoRecibido = reader.GetDecimal(reader.GetOrdinal("MontoRecibido")),
+                            MontoDevuelto = reader.GetDecimal(reader.GetOrdinal("MontoDevuelto")),
+                            SubTotal = reader.GetDecimal(reader.GetOrdinal("SubTotal")),
+                            Descuento = reader.GetDecimal(reader.GetOrdinal("Descuento")),
+                            IVA = reader.GetDecimal(reader.GetOrdinal("IVA")),
+                            Total = reader.GetDecimal(reader.GetOrdinal("Total")),
+                            Estado = reader.GetString(reader.GetOrdinal("Estado")),
+                            DetallesVenta = new List<DetalleVenta>()
+                        };
+
+                        await CargarDetallesVenta(venta);
+                        ventas.Add(venta);
+                    }
+                }
+            }
+
+            return ventas;
         }
 
         private async Task CargarDetallesVenta(Venta venta)
@@ -429,14 +492,10 @@ namespace WebApi.Implementacion
             }
         }
 
-        private async Task<int> ObtenerStockDisponible(int idProducto, SqlConnection connection, SqlTransaction transaction)
+        private async Task<int> ObtenerStockProducto(int idProducto, SqlConnection connection, SqlTransaction transaction)
         {
-            var command = new SqlCommand(@"
-                SELECT SUM(CASE WHEN TipoMovimiento = 'Entrada' AND EstadoMovimiento = 'Activo' 
-                           THEN Cantidad ELSE 0 END) - 
-                       SUM(CASE WHEN TipoMovimiento = 'Salida' THEN Cantidad ELSE 0 END) 
-                FROM MovimientoInventario
-                WHERE Producto_ID = @Producto_ID",
+            var command = new SqlCommand(
+                "SELECT Cantidad FROM Productos WHERE Producto_ID = @Producto_ID",
                 connection, transaction);
 
             command.Parameters.AddWithValue("@Producto_ID", idProducto);
@@ -444,44 +503,116 @@ namespace WebApi.Implementacion
             return result != DBNull.Value ? Convert.ToInt32(result) : 0;
         }
 
+        private async Task ActualizarStockProducto(int idProducto, int cantidadCambio, SqlConnection connection, SqlTransaction transaction)
+        {
+            var command = new SqlCommand(@"
+                UPDATE Productos 
+                SET Cantidad = Cantidad + @Cambio
+                WHERE Producto_ID = @Producto_ID",
+                connection, transaction);
+
+            command.Parameters.AddWithValue("@Cambio", cantidadCambio);
+            command.Parameters.AddWithValue("@Producto_ID", idProducto);
+            await command.ExecuteNonQueryAsync();
+        }
+
         private async Task RegistrarMovimientoInventario(int productoId, int cantidad, decimal precio, int referenciaId, string tipoReferencia, SqlConnection connection, SqlTransaction transaction)
         {
-        var precioProductoId = await ObtenerPrecioProductoIdActivo(productoId, connection, transaction);
+            var precioProductoId = await ObtenerPrecioProductoIdActivo(productoId, connection, transaction);
 
-        var movimientoCmd = new SqlCommand(@"
-        INSERT INTO MovimientoInventario (
-            Producto_ID, PrecioProducto_ID, TipoMovimiento, Cantidad, Precio,
-            Referencia_ID, TipoReferencia, FechaMovimiento, EstadoMovimiento
-        ) 
-        VALUES (
-            @Producto_ID, @PrecioProducto_ID, @TipoMovimiento, @Cantidad, @Precio,
-            @Referencia_ID, @TipoReferencia, GETDATE(), 'Activo'
-        )",
-        connection, transaction);
+            var movimientoCmd = new SqlCommand(@"
+                INSERT INTO MovimientoInventario (
+                    Producto_ID, PrecioProducto_ID, TipoMovimiento, Cantidad, Precio,
+                    Referencia_ID, TipoReferencia, FechaMovimiento, EstadoMovimiento
+                ) 
+                VALUES (
+                    @Producto_ID, @PrecioProducto_ID, @TipoMovimiento, @Cantidad, @Precio,
+                    @Referencia_ID, @TipoReferencia, GETDATE(), 'Activo'
+                )",
+                connection, transaction);
 
-        movimientoCmd.Parameters.AddWithValue("@Producto_ID", productoId);
-        movimientoCmd.Parameters.AddWithValue("@PrecioProducto_ID", precioProductoId ?? (object)DBNull.Value); // ¡ESTA ES LA LÍNEA CLAVE!
-        movimientoCmd.Parameters.AddWithValue("@TipoMovimiento", tipoReferencia == "Venta" ? "Salida" : "Entrada");
-        movimientoCmd.Parameters.AddWithValue("@Cantidad", cantidad);
-        movimientoCmd.Parameters.AddWithValue("@Precio", precio);
-        movimientoCmd.Parameters.AddWithValue("@Referencia_ID", referenciaId);
-        movimientoCmd.Parameters.AddWithValue("@TipoReferencia", tipoReferencia);
+            movimientoCmd.Parameters.AddWithValue("@Producto_ID", productoId);
+            movimientoCmd.Parameters.AddWithValue("@PrecioProducto_ID", precioProductoId ?? (object)DBNull.Value);
+            movimientoCmd.Parameters.AddWithValue("@TipoMovimiento", tipoReferencia == "Venta" ? "Salida" : "Entrada");
+            movimientoCmd.Parameters.AddWithValue("@Cantidad", cantidad);
+            movimientoCmd.Parameters.AddWithValue("@Precio", precio);
+            movimientoCmd.Parameters.AddWithValue("@Referencia_ID", referenciaId);
+            movimientoCmd.Parameters.AddWithValue("@TipoReferencia", tipoReferencia);
 
-        await movimientoCmd.ExecuteNonQueryAsync();
+            await movimientoCmd.ExecuteNonQueryAsync();
         }
 
         private async Task<int?> ObtenerPrecioProductoIdActivo(int productoId, SqlConnection connection, SqlTransaction transaction)
         {
             var command = new SqlCommand(@"
-                SELECT Precio_ID 
+                SELECT TOP 1 Precio_ID 
                 FROM PrecioProducto 
-                WHERE Producto_ID = @Producto_ID AND Activo = 1",
+                WHERE Producto_ID = @Producto_ID AND Activo = 1
+                ORDER BY FechaRegistro DESC",
                 connection, transaction);
 
             command.Parameters.AddWithValue("@Producto_ID", productoId);
 
             var result = await command.ExecuteScalarAsync();
             return result != null && result != DBNull.Value ? Convert.ToInt32(result) : (int?)null;
+        }
+
+        public async Task AplicarFIFOCompra(int compraId, int productoId, int cantidad, decimal costoUnitario, SqlConnection connection, SqlTransaction transaction)
+        {
+            await ActualizarStockProducto(productoId, cantidad, connection, transaction);
+
+            var precioProductoId = await ObtenerOCrearPrecioProducto(productoId, costoUnitario, connection, transaction);
+
+            await RegistrarMovimientoInventario(
+                productoId,
+                cantidad,
+                costoUnitario,
+                compraId,
+                "Compra",
+                connection,
+                transaction
+            );
+        }
+
+        private async Task<int> ObtenerOCrearPrecioProducto(int productoId, decimal costoCompra, SqlConnection connection, SqlTransaction transaction)
+        {
+            var command = new SqlCommand(@"
+                SELECT Precio_ID FROM PrecioProducto 
+                WHERE Producto_ID = @Producto_ID AND Activo = 1",
+                connection, transaction);
+
+            command.Parameters.AddWithValue("@Producto_ID", productoId);
+
+            var result = await command.ExecuteScalarAsync();
+
+            if (result != null && result != DBNull.Value)
+            {
+                return Convert.ToInt32(result);
+            }
+
+            var insertCommand = new SqlCommand(@"
+                INSERT INTO PrecioProducto (
+                    Producto_ID, CostoCompra, PrecioVenta, MargenGanancia, 
+                    PorcentajeMargen, Activo, FechaRegistro, UsuarioModificacion
+                )
+                OUTPUT INSERTED.Precio_ID
+                VALUES (
+                    @Producto_ID, @CostoCompra, @PrecioVenta, @MargenGanancia,
+                    @PorcentajeMargen, 1, GETDATE(), 'Sistema'
+                )",
+                connection, transaction);
+
+            decimal precioVenta = costoCompra * 1.30m;
+            decimal margenGanancia = precioVenta - costoCompra;
+            decimal porcentajeMargen = (margenGanancia / costoCompra) * 100;
+
+            insertCommand.Parameters.AddWithValue("@Producto_ID", productoId);
+            insertCommand.Parameters.AddWithValue("@CostoCompra", costoCompra);
+            insertCommand.Parameters.AddWithValue("@PrecioVenta", precioVenta);
+            insertCommand.Parameters.AddWithValue("@MargenGanancia", margenGanancia);
+            insertCommand.Parameters.AddWithValue("@PorcentajeMargen", porcentajeMargen);
+
+            return Convert.ToInt32(await insertCommand.ExecuteScalarAsync());
         }
     }
 }
